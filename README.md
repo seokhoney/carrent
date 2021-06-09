@@ -2,7 +2,6 @@
 
 - 렌트카 등록
 http POST http://localhost:8081/products name=Tesla stock=2 productId=1 
-http POST http://localhost:8081/products name=IONIQ stock=4 productId=2 
 - 렌트카 등록후 상품갯수 수정 
 http PATCH http://localhost:8081/products/1 stock=11
 - 렌트카 조회
