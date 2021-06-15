@@ -27,9 +27,8 @@ public class Booking {
             System.out.println(rslt);
 
             if (rslt) {
-                this.setStatus("Booked");
-
                 Booked booked = new Booked();
+                booked.setStatus("Booked");
                 BeanUtils.copyProperties(this, booked);
                 booked.publishAfterCommit();
             } else {throw new BookingException("No Available stock!");}
