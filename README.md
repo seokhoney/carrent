@@ -5,25 +5,6 @@
 본 프로젝트는 MSA/DDD/Event Storming/EDA 를 포괄하는 분석/설계/구현/운영 전단계를 커버하도록 구성한 프로젝트입니다.
 이는 클라우드 네이티브 애플리케이션의 개발에 요구되는 체크포인트들을 통과하기 위한 내용을 포함합니다.
 
-# Table of contents
-
-- [렌터카]
-  - [서비스 시나리오](#서비스-시나리오)
-  - [체크포인트](#체크포인트)
-  - [분석/설계](#분석설계)
-  - [구현:](#구현-)
-    - [DDD 의 적용](#ddd-의-적용)
-    - [폴리글랏 퍼시스턴스](#폴리글랏-퍼시스턴스)
-    - [폴리글랏 프로그래밍](#폴리글랏-프로그래밍)
-    - [동기식 호출 과 Fallback 처리](#동기식-호출-과-Fallback-처리)
-    - [비동기식 호출 과 Eventual Consistency](#비동기식-호출-과-Eventual-Consistency)
-  - [운영](#운영)
-    - [CI/CD 설정](#cicd설정)
-    - [동기식 호출 / 서킷 브레이킹 / 장애격리](#동기식-호출-서킷-브레이킹-장애격리)
-    - [오토스케일 아웃](#오토스케일-아웃)
-    - [무정지 재배포](#무정지-재배포)
-  - [신규 개발 조직의 추가](#신규-개발-조직의-추가)
-
 # 서비스 시나리오
 
 기능적 요구사항
@@ -46,7 +27,6 @@
     2. 예약시스템이 과중되면 사용자를 잠시동안 받지 않고 예약을 잠시후에 하도록 유도한다  Circuit breaker, fallback
 3. 성능
     1. 고객이 예약상태를 별도의 고객페이지에서 확인할 수 있어야 한다  CQRS
-
 
 # 체크포인트
 
@@ -144,8 +124,7 @@
 
 ## 헥사고날 아키텍처 다이어그램 도출 (수정 필요)
     
-![image](https://user-images.githubusercontent.com/487999/79684772-eba9ab00-826e-11ea-9405-17e2bf39ec76.png)
-
+![image](https://user-images.githubusercontent.com/84000863/122176547-b115bf80-cebf-11eb-8de8-4d669195f424.png)
 
     - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
     - 호출관계에서 PubSub 과 Req/Resp 를 구분함
@@ -247,7 +226,7 @@ http GET http://localhost:8084/bookings
 ```
 
 
-## 폴리글랏 퍼시스턴스
+## 폴리글랏 퍼시스턴스(수정 필요)
 
 앱프런트 (app) 는 서비스 특성상 많은 사용자의 유입과 상품 정보의 다양한 콘텐츠를 저장해야 하는 특징으로 인해 RDB 보다는 Document DB / NoSQL 계열의 데이터베이스인 Mongo DB 를 사용하기로 하였다. 이를 위해 order 의 선언에는 @Entity 가 아닌 @Document 로 마킹되었으며, 별다른 작업없이 기존의 Entity Pattern 과 Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 MongoDB 에 부착시켰다
 
@@ -281,7 +260,7 @@ public interface 주문Repository extends JpaRepository<Order, UUID>{
 
 ```
 
-## 폴리글랏 프로그래밍
+## 폴리글랏 프로그래밍(수정 필요)
 
 고객관리 서비스(customer)의 시나리오인 주문상태, 배달상태 변경에 따라 고객에게 카톡메시지 보내는 기능의 구현 파트는 해당 팀이 python 을 이용하여 구현하기로 하였다. 해당 파이썬 구현체는 각 이벤트를 수신하여 처리하는 Kafka consumer 로 구현되었고 코드는 다음과 같다:
 ```
@@ -315,66 +294,179 @@ EXPOSE 8090
 CMD ["python", "policy-handler.py"]
 ```
 
+## CQRS
+
+Viewer를 별도로 구현하여 아래와 같이 view가 출력된다.
+
+- 예약 수행 후의 myPage
+![image](https://user-images.githubusercontent.com/84000863/122181119-0784fd00-cec4-11eb-9a49-2881e440e5a1.png)
+
+- 반납 수행 후의 myPage
+![image](https://user-images.githubusercontent.com/84000863/122181167-153a8280-cec4-11eb-9a11-b81e993cf9f6.png)
 
 ## 동기식 호출 과 Fallback 처리
 
 분석단계에서의 조건 중 하나로 주문(app)->결제(pay) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다. 
 
-- 결제서비스를 호출하기 위하여 Stub과 (FeignClient) 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현 
+- 결제서비스를 호출하기 위하여 FeignClient를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현 
 
 ```
-# (app) 결제이력Service.java
+# (booking) ProductService.java
 
-package fooddelivery.external;
 
-@FeignClient(name="pay", url="http://localhost:8082")//, fallback = 결제이력ServiceFallback.class)
-public interface 결제이력Service {
+package carrent.external;
 
-    @RequestMapping(method= RequestMethod.POST, path="/결제이력s")
-    public void 결제(@RequestBody 결제이력 pay);
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+
+
+@FeignClient(name="product", url="http://product:8080") 
+public interface ProductService {
+
+    @RequestMapping(method= RequestMethod.GET, path="/chkAndModifyStock")
+    public boolean modifyStock(@RequestParam("productId") Long productId,
+                            @RequestParam("qty") Integer qty);
 
 }
 ```
 
-- 주문을 받은 직후(@PostPersist) 결제를 요청하도록 처리
+- 예약된 직후(@PostPersist) 재고수량이 업데이트 되도록 처리 (modifyStock 호출)
 ```
 # Order.java (Entity)
 
     @PostPersist
-    public void onPostPersist(){
+    public void onPostPersist() {
 
-        fooddelivery.external.결제이력 pay = new fooddelivery.external.결제이력();
-        pay.setOrderId(getOrderId());
-        
-        Application.applicationContext.getBean(fooddelivery.external.결제이력Service.class)
-                .결제(pay);
+            boolean rslt = BookingApplication.applicationContext.getBean(carrent.external.ProductService.class)
+            .modifyStock(this.getProductId(), this.getQty());
+
+            if (rslt) {
+                
+                Booked booked = new Booked();
+                booked.setStatus("Booked");
+                BeanUtils.copyProperties(this, booked);
+                booked.publishAfterCommit();
+            } 
     }
+    
 ```
 
-- 동기식 호출에서는 호출 시간에 따른 타임 커플링이 발생하며, 결제 시스템이 장애가 나면 주문도 못받는다는 것을 확인:
+- 동기식 호출에서는 호출 시간에 따른 타임 커플링이 발생하며, 상품 시스템이 장애가 나면 예약도 못하는 것을 확인:
 
 
 ```
-# 결제 (pay) 서비스를 잠시 내려놓음 (ctrl+c)
+# 상품(product) 서비스를 잠시 내려놓음 (ctrl+c)
 
-#주문처리
-http localhost:8081/orders item=통닭 storeId=1   #Fail
-http localhost:8081/orders item=피자 storeId=2   #Fail
+# 예약하기(booking)
+http POST http://localhost:8084/bookings qty=1 startDate=2021-07-01 endDate=2021-07-03 productId=1 
+# Fail
+![image](https://user-images.githubusercontent.com/84000863/122181816-a9a4e500-cec4-11eb-980a-db584dc11d61.png)
 
-#결제서비스 재기동
-cd 결제
+# 상품(product) 서비스 재기동
+cd product
 mvn spring-boot:run
 
-#주문처리
-http localhost:8081/orders item=통닭 storeId=1   #Success
-http localhost:8081/orders item=피자 storeId=2   #Success
+# 예약하기(booking)
+http POST http://localhost:8084/bookings qty=1 startDate=2021-07-01 endDate=2021-07-03 productId=1 
+# Success
+![image](https://user-images.githubusercontent.com/84000863/122181996-d1944880-cec4-11eb-9ddb-be0ec470ddc2.png)
+
 ```
 
-- 또한 과도한 요청시에 서비스 장애가 도미노 처럼 벌어질 수 있다. (서킷브레이커, 폴백 처리는 운영단계에서 설명한다.)
+## Gateway 적용
+
+gateway > applitcation.yml 설정
+
+```
+server:
+  port: 8088
+
+---
+
+spring:
+  profiles: default
+  cloud:
+    gateway:
+      routes:
+        - id: product
+          uri: http://localhost:8081
+          predicates:
+            - Path=/products/**, /chkAndModifyStock/** 
+        - id: customercenter
+          uri: http://localhost:8082
+          predicates:
+            - Path= /myPages/**
+        - id: store
+          uri: http://localhost:8083
+          predicates:
+            - Path=/stores/** 
+        - id: booking
+          uri: http://localhost:8084
+          predicates:
+            - Path=/bookings/** 
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "*"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
 
 
+---
 
+spring:
+  profiles: docker
+  cloud:
+    gateway:
+      routes:
+        - id: product
+          uri: http://product:8080
+          predicates:
+            - Path=/products/** , /chkAndModifyStock/** 
+        - id: customercenter
+          uri: http://customercenter:8080
+          predicates:
+            - Path= /myPages/**
+        - id: store
+          uri: http://store:8080
+          predicates:
+            - Path=/stores/** 
+        - id: booking
+          uri: http://booking:8080
+          predicates:
+            - Path=/bookings/** 
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "*"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
 
+server:
+  port: 8080
+  
+```
+
+gateway 테스트
+
+```
+http http://localhost:8088/product
+```
+![image](https://user-images.githubusercontent.com/84000863/122182444-423b6500-cec5-11eb-932d-77e066f60f94.png)
+
+<<여기부터 수정>>
 ## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트
 
 
