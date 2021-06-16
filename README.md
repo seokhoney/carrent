@@ -478,7 +478,7 @@ http http://localhost:8088/product
 ![image](https://user-images.githubusercontent.com/84000863/122182444-423b6500-cec5-11eb-932d-77e066f60f94.png)
 
 
-## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 
+## 비동기식 호출 / 시간적 디커플링 / 장애격리 (수정 필요)
 
 예약(booking)이 이루어진 후에 업체(store)로 이를 알려주는 행위는 동기식이 아니라 비 동기식으로 처리하여 업체(store)의 처리를 위하여 예약이 블로킹 되지 않아도록 처리한다.
  
