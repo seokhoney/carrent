@@ -369,6 +369,7 @@ public interface ProductService {
 http POST http://localhost:8084/bookings qty=1 startDate=2021-07-01 endDate=2021-07-03 productId=1 
 ```
 < Fail >
+
 ![image](https://user-images.githubusercontent.com/84000863/122181816-a9a4e500-cec4-11eb-980a-db584dc11d61.png)
 
 - 상품(product) 서비스 재기동
@@ -382,7 +383,9 @@ mvn spring-boot:run
 http POST http://localhost:8084/bookings qty=1 startDate=2021-07-01 endDate=2021-07-03 productId=1 
 ```
 < Success >
+
 ![image](https://user-images.githubusercontent.com/84000863/122181996-d1944880-cec4-11eb-9ddb-be0ec470ddc2.png)
+
 
 
 ## Gateway 적용
@@ -475,101 +478,183 @@ http http://localhost:8088/product
 ![image](https://user-images.githubusercontent.com/84000863/122182444-423b6500-cec5-11eb-932d-77e066f60f94.png)
 
 <<여기부터 수정>>
-## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트
+## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 
 
-
-결제가 이루어진 후에 상점시스템으로 이를 알려주는 행위는 동기식이 아니라 비 동기식으로 처리하여 상점 시스템의 처리를 위하여 결제주문이 블로킹 되지 않아도록 처리한다.
+예약(booking)이 이루어진 후에 업체(store)로 이를 알려주는 행위는 동기식이 아니라 비 동기식으로 처리하여 업체(store)의 처리를 위하여 예약이 블로킹 되지 않아도록 처리한다.
  
 - 이를 위하여 결제이력에 기록을 남긴 후에 곧바로 결제승인이 되었다는 도메인 이벤트를 카프카로 송출한다(Publish)
  
 ```
-package fooddelivery;
+    @PostPersist
+    public void onPostPersist() {
 
-@Entity
-@Table(name="결제이력_table")
-public class 결제이력 {
 
- ...
-    @PrePersist
-    public void onPrePersist(){
-        결제승인됨 결제승인됨 = new 결제승인됨();
-        BeanUtils.copyProperties(this, 결제승인됨);
-        결제승인됨.publish();
+            boolean rslt = BookingApplication.applicationContext.getBean(carrent.external.ProductService.class)
+            .modifyStock(this.getProductId(), this.getQty());
+
+            if (rslt) {
+                
+                Booked booked = new Booked();
+                booked.setStatus("Booked");
+                BeanUtils.copyProperties(this, booked);
+                booked.publishAfterCommit();
+            } 
     }
-
-}
 ```
-- 상점 서비스에서는 결제승인 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다:
+
+- 업체(store)에서는 예악완료(Booked) 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다:
 
 ```
-package fooddelivery;
+package carrent;
 
 ...
 
 @Service
 public class PolicyHandler{
+    @Autowired 
+    StoreRepository storeRepository;
 
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenever결제승인됨_주문정보받음(@Payload 결제승인됨 결제승인됨){
-
-        if(결제승인됨.isMe()){
-            System.out.println("##### listener 주문정보받음 : " + 결제승인됨.toJson());
-            // 주문 정보를 받았으니, 요리를 슬슬 시작해야지..
+    public void wheneverBooked_PrepareCar(@Payload Booked booked){
+        /*
+        if(booked.isMe()){        
+            Optional<Store> optionalStore= storeRepository.findById(booked.getId());
+            Store store = optionalStore.get();
+            storeRepository.save(store);
+          }
+          */
+          if(booked.isMe()){            
+            Store store = new Store();
+            store.setBookingId(booked.getId());
+            store.setProductId(booked.getProductId());        
+            store.setStatus("CarRentStarted");
+            store.setQty(booked.getQty());
+            storeRepository.save(store);
+        }  
             
-        }
     }
-
-}
+    
+...
 
 ```
-실제 구현을 하자면, 카톡 등으로 점주는 노티를 받고, 요리를 마친후, 주문 상태를 UI에 입력할테니, 우선 주문정보를 DB에 받아놓은 후, 이후 처리는 해당 Aggregate 내에서 하면 되겠다.:
+(수정 필요)
+booking 서비스는 store 서비스와 완전히 분리되어있으며(sync transaction 없음) 이벤트 수신에 따라 처리되기 때문에, store 서비스가 유지보수로 인해 잠시 내려간 상태라도 예약을 진행해도 문제 없다.(시간적 디커플링) :
   
 ```
-  @Autowired 주문관리Repository 주문관리Repository;
-  
-  @StreamListener(KafkaProcessor.INPUT)
-  public void whenever결제승인됨_주문정보받음(@Payload 결제승인됨 결제승인됨){
+# 업체(store) 서비스 를 잠시 내려놓음 (ctrl+c)
 
-      if(결제승인됨.isMe()){
-          카톡전송(" 주문이 왔어요! : " + 결제승인됨.toString(), 주문.getStoreId());
+# 예약처리
+http POST http://localhost:8084/bookings qty=1 startDate=2021-07-01 endDate=2021-07-03 productId=1
 
-          주문관리 주문 = new 주문관리();
-          주문.setId(결제승인됨.getOrderId());
-          주문관리Repository.save(주문);
-      }
-  }
+# 예약 상태 확인
+http GET http://localhost:8084/bookings     # 예약상태 안바뀜 확인
+```
+<...image>
 
 ```
-
-상점 시스템은 주문/결제와 완전히 분리되어있으며, 이벤트 수신에 따라 처리되기 때문에, 상점시스템이 유지보수로 인해 잠시 내려간 상태라도 주문을 받는데 문제가 없다:
-```
-# 상점 서비스 (store) 를 잠시 내려놓음 (ctrl+c)
-
-#주문처리
-http localhost:8081/orders item=통닭 storeId=1   #Success
-http localhost:8081/orders item=피자 storeId=2   #Success
-
-#주문상태 확인
-http localhost:8080/orders     # 주문상태 안바뀜 확인
-
-#상점 서비스 기동
-cd 상점
+# 업체(store) 서비스 기동
+cd store
 mvn spring-boot:run
 
-#주문상태 확인
-http localhost:8080/orders     # 모든 주문의 상태가 "배송됨"으로 확인
+# 예약 상태 확인
+http GET http://localhost:8084/bookings     # 예약 상태가 "Rented"으로 확인
+```
+<...image>
+
+
+## Deploy / Pipeline
+
+- 소스 가져오기
+```
+git clone https://github.com/kary000/carrent.git
+```
+![image](https://user-images.githubusercontent.com/84000863/122197088-cea05480-ced2-11eb-8a64-9c2d55b41240.png)
+
+- 빌드하기
+```
+cd booking
+mvn package
+
+cd customercenter
+mvn package
+
+cd gateway
+mvn package
+
+cd product
+mvn package
+
+cd store
+mvn package
 ```
 
+![image](https://user-images.githubusercontent.com/84000863/122197418-1de68500-ced3-11eb-8b10-7820e8a354b8.png)
 
-# 운영
+- 도커라이징(Dockerizing) : Azure Container Registry(ACR)에 Docker Image Push하기
+```
+cd booking
+az acr build --registry user08skccacr --image user08skccacr.azurecr.io/booking:latest .
 
-## CI/CD 설정
+cd customercenter
+az acr build --registry user08skccacr --image user08skccacr.azurecr.io/customercenter:latest .
+
+cd gateway
+az acr build --registry user08skccacr --image user08skccacr.azurecr.io/gateway:latest .
+
+cd product
+az acr build --registry user08skccacr --image user08skccacr.azurecr.io/product:latest .
+
+cd store
+az acr build --registry user08skccacr --image user08skccacr.azurecr.io/store:latest . 
+
+```
+![image](https://user-images.githubusercontent.com/84000863/122197764-7e75c200-ced3-11eb-87cb-3b2263e6b249.png)
+
+- 컨테이너라이징(Containerizing) : Deployment 생성 확인
+```
+kubectl create deploy booking --image=user08skccacr.azurecr.io/booking:v1
+kubectl create deploy customercenter --image=user08skccacr.azurecr.io/customercenter:v1
+kubectl create deploy gateway --image=user08skccacr.azurecr.io/gateway:v1
+kubectl create deploy product --image=user08skccacr.azurecr.io/product:v1
+kubectl create deploy store --image=user08skccacr.azurecr.io/store:v1
+
+kubectl get all
+```
+![image](https://user-images.githubusercontent.com/84000863/122198125-d6142d80-ced3-11eb-8d04-be7fd397a1db.png)
+
+- 컨테이너라이징(Containerizing) : Service 생성 확인
+```
+kubectl expose deploy booking --type="ClusterIP" --port=8080
+kubectl expose deploy customercenter --type="ClusterIP" --port=8080
+kubectl expose deploy gateway --type="LoadBalancer" --port=8080
+kubectl expose deploy product --type="ClusterIP" --port=8080
+kubectl expose deploy store --type="ClusterIP" --port=8080
+
+kubectl get all
+```
+![image](https://user-images.githubusercontent.com/84000863/122198270-f93edd00-ced3-11eb-8589-42010860180b.png)
+
+- (+) deployment.yaml로 배포
+```
+cd booking
+kubectl apply -f kubernetes/deployment.yml
+
+cd customercenter
+kubectl apply -f kubernetes/deployment.yml
+
+cd product
+kubectl apply -f kubernetes/deployment.yml
+
+cd store
+kubectl apply -f kubernetes/deployment.yml
+
+cd gateway
+kubectl create deploy gateway --image=user08skccacr.azurecr.io/gateway:latest
+```
+![image](https://user-images.githubusercontent.com/84000863/122198598-428f2c80-ced4-11eb-8a98-f93466901302.png)
 
 
-각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 GCP를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 cloudbuild.yml 에 포함되었다.
-
-
-## 동기식 호출 / 서킷 브레이킹 / 장애격리
+## 동기식 호출 / 서킷 브레이킹 / 장애격리 (수정 필요)
 
 * 서킷 브레이킹 프레임워크의 선택: Spring FeignClient + Hystrix 옵션을 사용하여 구현함
 
@@ -744,41 +829,36 @@ Shortest transaction:	        0.00
 - Retry 의 설정 (istio)
 - Availability 가 높아진 것을 확인 (siege)
 
-### 오토스케일 아웃
+### Autoscale (HPA)
 앞서 CB 는 시스템을 안정되게 운영할 수 있게 해줬지만 사용자의 요청을 100% 받아들여주지 못했기 때문에 이에 대한 보완책으로 자동화된 확장 기능을 적용하고자 한다. 
 
 
-- 결제서비스에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 15프로를 넘어서면 replica 를 10개까지 늘려준다:
+- 상품(product) 서비스에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 15프로를 넘어서면 replica 를 10개까지 늘려준다:
 ```
-kubectl autoscale deploy pay --min=1 --max=10 --cpu-percent=15
+kubectl autoscale deploy product --min=1 --max=10 --cpu-percent=5
+
+kubectl get hpa
 ```
-- CB 에서 했던 방식대로 워크로드를 2분 동안 걸어준다.
+![image](https://user-images.githubusercontent.com/84000863/122199493-0b6d4b00-ced5-11eb-8c52-71b7d75a49ab.png)
+
+- CB 에서 했던 방식대로 워크로드를 30초 동안 걸어준다.
 ```
-siege -c100 -t120S -r10 --content-type "application/json" 'http://localhost:8081/orders POST {"item": "chicken"}'
+siege -c250 -t30S -v --content-type "application/json" 'http://product:8080/products POST {"productId":"123", "stock":5, "name":"IONIQ"}'
 ```
 - 오토스케일이 어떻게 되고 있는지 모니터링을 걸어둔다:
 ```
-kubectl get deploy pay -w
+kubectl get deploy product -w
+watch -n 1 kubectl get pod
 ```
+
 - 어느정도 시간이 흐른 후 (약 30초) 스케일 아웃이 벌어지는 것을 확인할 수 있다:
-```
-NAME    DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-pay     1         1         1            1           17s
-pay     1         2         1            1           45s
-pay     1         4         1            1           1m
-:
-```
+
+![image](https://user-images.githubusercontent.com/84000863/122199928-83d40c00-ced5-11eb-9849-87b3e14297f1.png)
+
+
 - siege 의 로그를 보아도 전체적인 성공률이 높아진 것을 확인 할 수 있다. 
-```
-Transactions:		        5078 hits
-Availability:		       92.45 %
-Elapsed time:		       120 secs
-Data transferred:	        0.34 MB
-Response time:		        5.60 secs
-Transaction rate:	       17.15 trans/sec
-Throughput:		        0.01 MB/sec
-Concurrency:		       96.02
-```
+
+![image](https://user-images.githubusercontent.com/84000863/122199996-96e6dc00-ced5-11eb-87c7-c3316bdc73a0.png)
 
 
 ## 무정지 재배포
@@ -787,63 +867,31 @@ Concurrency:		       96.02
 
 - seige 로 배포작업 직전에 워크로드를 모니터링 함.
 ```
-siege -c100 -t120S -r10 --content-type "application/json" 'http://localhost:8081/orders POST {"item": "chicken"}'
+siege -c250 -t60S  -v --content-type "application/json" 'http://52.231.159.123:8080/products POST {"productId":”1”, "name":Tesla”, “stock”=”2”}'
+```
+- Readiness가 설정되지 않은 yml 파일로 배포 중 서비스 요청 처리 실패
 
-** SIEGE 4.0.5
-** Preparing 100 concurrent users for battle.
-The server is now under siege...
+![image](https://user-images.githubusercontent.com/84000863/122200277-d7def080-ced5-11eb-951b-33f18e4c2d58.png)
 
-HTTP/1.1 201     0.68 secs:     207 bytes ==> POST http://localhost:8081/orders
-HTTP/1.1 201     0.68 secs:     207 bytes ==> POST http://localhost:8081/orders
-HTTP/1.1 201     0.70 secs:     207 bytes ==> POST http://localhost:8081/orders
-HTTP/1.1 201     0.70 secs:     207 bytes ==> POST http://localhost:8081/orders
-:
+- deployment.yml에 readiness 옵션을 추가
 
+![image](https://user-images.githubusercontent.com/84000863/122200434-0066ea80-ced6-11eb-82a8-e94ed0182a51.png)
+
+- Readiness가 설정된 yml 파일로 배포 진행
+```
+kubectl apply -f deployment_with_readiness.yml
 ```
 
-- 새버전으로의 배포 시작
-```
-kubectl set image ...
-```
+- 기존 버전과 새 버전의 store pod 공존 중
 
-- seige 의 화면으로 넘어가서 Availability 가 100% 미만으로 떨어졌는지 확인
-```
-Transactions:		        3078 hits
-Availability:		       70.45 %
-Elapsed time:		       120 secs
-Data transferred:	        0.34 MB
-Response time:		        5.60 secs
-Transaction rate:	       17.15 trans/sec
-Throughput:		        0.01 MB/sec
-Concurrency:		       96.02
+![image](https://user-images.githubusercontent.com/84000863/122200647-32784c80-ced6-11eb-81d8-347e75c35f3a.png)
 
-```
-배포기간중 Availability 가 평소 100%에서 70% 대로 떨어지는 것을 확인. 원인은 쿠버네티스가 성급하게 새로 올려진 서비스를 READY 상태로 인식하여 서비스 유입을 진행한 것이기 때문. 이를 막기위해 Readiness Probe 를 설정함:
+ - Availability가 배포기간 동안 변화가 없기 때문에 무정지 재배포가 성공한 것으로 확인됨.
 
-```
-# deployment.yaml 의 readiness probe 의 설정:
+![image](https://user-images.githubusercontent.com/84000863/122200849-62275480-ced6-11eb-9350-f6af2e3296fb.png)
 
 
-kubectl apply -f kubernetes/deployment.yaml
-```
-
-- 동일한 시나리오로 재배포 한 후 Availability 확인:
-```
-Transactions:		        3078 hits
-Availability:		       100 %
-Elapsed time:		       120 secs
-Data transferred:	        0.34 MB
-Response time:		        5.60 secs
-Transaction rate:	       17.15 trans/sec
-Throughput:		        0.01 MB/sec
-Concurrency:		       96.02
-
-```
-
-배포기간 동안 Availability 가 변화없기 때문에 무정지 재배포가 성공한 것으로 확인됨.
-
-
-# 신규 개발 조직의 추가
+# ConfigMap (수정 필요)
 
   ![image](https://user-images.githubusercontent.com/487999/79684133-1d6c4300-826a-11ea-94a2-602e61814ebf.png)
 
