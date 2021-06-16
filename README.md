@@ -891,68 +891,46 @@ kubectl apply -f deployment_with_readiness.yml
 ![image](https://user-images.githubusercontent.com/84000863/122200849-62275480-ced6-11eb-9350-f6af2e3296fb.png)
 
 
-# ConfigMap (수정 필요)
+## ConfigMap (수정 필요)
 
-  ![image](https://user-images.githubusercontent.com/487999/79684133-1d6c4300-826a-11ea-94a2-602e61814ebf.png)
-
-
-## 마케팅팀의 추가
-    - KPI: 신규 고객의 유입률 증대와 기존 고객의 충성도 향상
-    - 구현계획 마이크로 서비스: 기존 customer 마이크로 서비스를 인수하며, 고객에 음식 및 맛집 추천 서비스 등을 제공할 예정
-
-## 이벤트 스토밍 
-    ![image](https://user-images.githubusercontent.com/487999/79685356-2b729180-8273-11ea-9361-a434065f2249.png)
-
-
-## 헥사고날 아키텍처 변화 
-
-![image](https://user-images.githubusercontent.com/487999/79685243-1d704100-8272-11ea-8ef6-f4869c509996.png)
-
-## 구현  
-
-기존의 마이크로 서비스에 수정을 발생시키지 않도록 Inbund 요청을 REST 가 아닌 Event 를 Subscribe 하는 방식으로 구현. 기존 마이크로 서비스에 대하여 아키텍처나 기존 마이크로 서비스들의 데이터베이스 구조와 관계없이 추가됨. 
-
-## 운영과 Retirement
-
-Request/Response 방식으로 구현하지 않았기 때문에 서비스가 더이상 불필요해져도 Deployment 에서 제거되면 기존 마이크로 서비스에 어떤 영향도 주지 않음.
-
-* [비교] 결제 (pay) 마이크로서비스의 경우 API 변화나 Retire 시에 app(주문) 마이크로 서비스의 변경을 초래함:
-
-예) API 변화시
+- Store 서비스의 deployment.yml 파일에 아래 항목 추가
 ```
-# Order.java (Entity)
-
-    @PostPersist
-    public void onPostPersist(){
-
-        fooddelivery.external.결제이력 pay = new fooddelivery.external.결제이력();
-        pay.setOrderId(getOrderId());
-        
-        Application.applicationContext.getBean(fooddelivery.external.결제이력Service.class)
-                .결제(pay);
-
-                --> 
-
-        Application.applicationContext.getBean(fooddelivery.external.결제이력Service.class)
-                .결제2(pay);
-
-    }
+env:
+   - name: STATUS
+     valueFrom:
+       configMapKeyRef:
+         name: store-cm
+         key: status
 ```
 
-예) Retire 시
+- ConfigMap 생성 및 조회
 ```
-# Order.java (Entity)
-
-    @PostPersist
-    public void onPostPersist(){
-
-        /**
-        fooddelivery.external.결제이력 pay = new fooddelivery.external.결제이력();
-        pay.setOrderId(getOrderId());
-        
-        Application.applicationContext.getBean(fooddelivery.external.결제이력Service.class)
-                .결제(pay);
-
-        **/
-    }
+kubectl create configmap storecm --from-literal=status=Preparing
+kubectl get configmap storecm -o yaml
 ```
+
+![image](https://user-images.githubusercontent.com/84000863/122202883-6f454300-ced8-11eb-8952-ba5f1c463ce6.png)
+
+- ...
+
+## Self-Healing (Liveness Probe)
+
+- 상품(product) 서비스의 deployment.yaml에 liveness probe 옵션 추가
+```
+livenessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8090
+            initialDelaySeconds: 120
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 5
+ ```
+ 
+- product에 liveness 적용 확인
+
+![image](https://user-images.githubusercontent.com/84000863/122203276-d4993400-ced8-11eb-98d3-b3044f9eb667.png)
+
+- product 서비스에 liveness가 발동되었고, 포트에 응답이 없기에 Restart가 발생함
+
+![image](https://user-images.githubusercontent.com/84000863/122203358-ebd82180-ced8-11eb-968a-2ecf20354f1d.png)
