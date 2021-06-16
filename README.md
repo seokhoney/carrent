@@ -299,10 +299,13 @@ CMD ["python", "policy-handler.py"]
 Viewer를 별도로 구현하여 아래와 같이 view가 출력된다.
 
 - 예약 수행 후의 myPage
+
 ![image](https://user-images.githubusercontent.com/84000863/122181119-0784fd00-cec4-11eb-9a49-2881e440e5a1.png)
 
 - 반납 수행 후의 myPage
+
 ![image](https://user-images.githubusercontent.com/84000863/122181167-153a8280-cec4-11eb-9a11-b81e993cf9f6.png)
+
 
 ## 동기식 호출 과 Fallback 처리
 
