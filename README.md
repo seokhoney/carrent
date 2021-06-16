@@ -367,8 +367,9 @@ public interface ProductService {
 # 예약하기(booking)
 http POST http://localhost:8084/bookings qty=1 startDate=2021-07-01 endDate=2021-07-03 productId=1 
 # Fail
+```
 ![image](https://user-images.githubusercontent.com/84000863/122181816-a9a4e500-cec4-11eb-980a-db584dc11d61.png)
-
+```
 # 상품(product) 서비스 재기동
 cd product
 mvn spring-boot:run
@@ -376,9 +377,9 @@ mvn spring-boot:run
 # 예약하기(booking)
 http POST http://localhost:8084/bookings qty=1 startDate=2021-07-01 endDate=2021-07-03 productId=1 
 # Success
+```
 ![image](https://user-images.githubusercontent.com/84000863/122181996-d1944880-cec4-11eb-9ddb-be0ec470ddc2.png)
 
-```
 
 ## Gateway 적용
 
