@@ -312,7 +312,7 @@ Viewer를 별도로 구현하여 아래와 같이 view가 출력된다.
 
 ## 동기식 호출
 
-분석단계에서의 조건 중 하나로 주문(app)->결제(pay) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다. 
+분석단계에서의 조건 중 하나로 예약(booking)->업체(pay) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다. 
 
 - 결제서비스를 호출하기 위하여 FeignClient를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현 
 
@@ -359,6 +359,28 @@ public interface ProductService {
             } 
     }
     
+```
+
+- 재고수량은 아래와 같은 로직으로 처리
+```
+public boolean modifyStock(HttpServletRequest request, HttpServletResponse response)
+        throws Exception {
+                boolean status = false;
+                Long productId = Long.valueOf(request.getParameter("productId"));
+                int qty = Integer.parseInt(request.getParameter("qty"));
+
+                Product product = productRepository.findByProductId(productId);
+
+                if(product != null){
+                        if (product.getStock() >= qty) {
+                                product.setStock(product.getStock() - qty);
+                                productRepository.save(product);
+                                status = true;
+                        }
+                }
+
+                return status;
+        }
 ```
 
 - 동기식 호출에서는 호출 시간에 따른 타임 커플링이 발생하며, 상품 시스템이 장애가 나면 예약도 못하는 것을 확인:
@@ -483,9 +505,9 @@ http http://localhost:8088/product
 
 ## 비동기식 호출 / 시간적 디커플링 / 장애격리 (수정 필요)
 
-예약(booking)이 이루어진 후에 업체(store)로 이를 알려주는 행위는 동기식이 아니라 비 동기식으로 처리하여 업체(store)의 처리를 위하여 예약이 블로킹 되지 않아도록 처리한다.
- 
-- 이를 위하여 결제이력에 기록을 남긴 후에 곧바로 결제승인이 되었다는 도메인 이벤트를 카프카로 송출한다(Publish)
+예약(booking)이 이루어진 후에 업체(store)에서 차를 배차하는 행위는 동기식이 아니라 비 동기식으로 처리하여 업체(store)의 배차처리를 위하여 예약이 블로킹 되지 않도록 처리한다.
+
+- 이를 위하여 예약완료 되었음을 도메인 이벤트를 카프카로 송출한다(Publish)
  
 ```
     @PostPersist
@@ -560,7 +582,7 @@ cd store
 mvn spring-boot:run
 
 # 예약 상태 확인
-http GET http://localhost:8084/bookings     # 예약 상태가 "Rented"으로 확인
+http GET http://localhost:8084/bookings     # 예약 상태가 "CarRentStarted"으로 확인
 ```
 <...image>
 
