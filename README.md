@@ -361,23 +361,27 @@ public interface ProductService {
 - 동기식 호출에서는 호출 시간에 따른 타임 커플링이 발생하며, 상품 시스템이 장애가 나면 예약도 못하는 것을 확인:
 
 
-```
-# 상품(product) 서비스를 잠시 내려놓음 (ctrl+c)
 
-# 예약하기(booking)
+- 상품(product) 서비스를 잠시 내려놓음 (ctrl+c)
+
+- 예약하기(booking)
+```
 http POST http://localhost:8084/bookings qty=1 startDate=2021-07-01 endDate=2021-07-03 productId=1 
-# Fail
 ```
+< Fail >
 ![image](https://user-images.githubusercontent.com/84000863/122181816-a9a4e500-cec4-11eb-980a-db584dc11d61.png)
+
+- 상품(product) 서비스 재기동
 ```
-# 상품(product) 서비스 재기동
 cd product
 mvn spring-boot:run
-
-# 예약하기(booking)
-http POST http://localhost:8084/bookings qty=1 startDate=2021-07-01 endDate=2021-07-03 productId=1 
-# Success
 ```
+
+- 예약하기(booking)
+```
+http POST http://localhost:8084/bookings qty=1 startDate=2021-07-01 endDate=2021-07-03 productId=1 
+```
+< Success >
 ![image](https://user-images.githubusercontent.com/84000863/122181996-d1944880-cec4-11eb-9ddb-be0ec470ddc2.png)
 
 
