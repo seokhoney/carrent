@@ -681,45 +681,29 @@ kubectl create deploy gateway --image=user08skccacr.azurecr.io/gateway:latest
 
 ## 동기식 호출 / 서킷 브레이킹 / 장애격리 (수정 필요)
 
-* 서킷 브레이킹 프레임워크의 선택: Spring FeignClient + Hystrix 옵션을 사용하여 구현함
+* 서킷 브레이킹 : yaml파일에서 구현함
 
-시나리오는 단말앱(app)-->결제(pay) 시의 연결을 RESTful Request/Response 로 연동하여 구현이 되어있고, 결제 요청이 과도할 경우 CB 를 통하여 장애격리.
+시나리오는 차량등록시 요청이 과도할 경우 CB 를 통하여 장애격리.
 
-- Hystrix 를 설정:  요청처리 쓰레드에서 처리시간이 610 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
-```
-# application.yml
-
-hystrix:
-  command:
-    # 전역설정
-    default:
-      execution.isolation.thread.timeoutInMilliseconds: 610
+outlierDetection 를 설정: 1초내에 연속 한번 오류발생시, 호스트를 10초동안 100% CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
 
 ```
+# dr-htttpbin.yaml
 
-- 피호출 서비스(결제:pay) 의 임의 부하 처리 - 400 밀리에서 증감 220 밀리 정도 왔다갔다 하게
-```
-# (pay) 결제이력.java (Entity)
+outlierDetection:
+        consecutive5xxErrors: 1
+        interval: 1s
+        baseEjectionTime: 10s
+        maxEjectionPercent: 100
 
-    @PrePersist
-    public void onPrePersist(){  //결제이력을 저장한 후 적당한 시간 끌기
-
-        ...
-        
-        try {
-            Thread.currentThread().sleep((long) (400 + Math.random() * 220));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 ```
 
 * 부하테스터 siege 툴을 통한 서킷 브레이커 동작 확인:
 - 동시사용자 100명
-- 60초 동안 실시
+- 30초 동안 실시
 
 ```
-$ siege -c100 -t60S -r10 --content-type "application/json" 'http://localhost:8081/orders POST {"item": "chicken"}'
+$ siege -c100 -t30S -r10 --content-type "application/json" 'http://localhost:8081/orders POST {"item": "chicken"}'
 
 ** SIEGE 4.0.5
 ** Preparing 100 concurrent users for battle.
@@ -868,7 +852,7 @@ kubectl get hpa
 
 - CB 에서 했던 방식대로 워크로드를 30초 동안 걸어준다.
 ```
-siege -c250 -t30S -v --content-type "application/json" 'http://product:8080/products POST {"productId":"123", "stock":5, "name":"IONIQ"}'
+siege -c100 -t30S -v --content-type "application/json" 'http://product:8080/products POST {"productId":"123", "stock":"5", "name":"IONIQ"}'
 ```
 - 오토스케일이 어떻게 되고 있는지 모니터링을 걸어둔다:
 ```
