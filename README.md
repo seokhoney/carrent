@@ -591,7 +591,7 @@ http GET http://localhost:8084/bookings     # 예약 상태가 "CarRentStarted"�
 
 - 소스 가져오기
 ```
-git clone https://github.com/kary000/carrent.git
+git clone https://github.com/kary000/car.git
 ```
 ![image](https://user-images.githubusercontent.com/84000863/122197088-cea05480-ced2-11eb-8a64-9c2d55b41240.png)
 
