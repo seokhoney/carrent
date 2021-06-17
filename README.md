@@ -628,7 +628,8 @@ outlierDetection:
 - 30초 동안 실시
 
 ```
-$ siege -c100 -t30S -r10 --content-type "application/json" 'http://localhost:8081/orders POST {"item": "chicken"}'
+$ siege -c100 -t30S -v --content-type "application/json" 'http://52.231.76.211:8080/products POST {"productId": "1001", "stock":"50", "name":"IONIQ"}'
+
 
 ** SIEGE 4.0.5
 ** Preparing 100 concurrent users for battle.
@@ -777,7 +778,7 @@ kubectl get hpa
 
 - CB 에서 했던 방식대로 워크로드를 30초 동안 걸어준다.
 ```
-siege -c100 -t30S -v --content-type "application/json" 'http://product:8080/products POST {"productId":"123", "stock":"5", "name":"IONIQ"}'
+siege -c100 -t30S -v --content-type "application/json" 'http://52.231.76.211:8080/products POST {"productId": "1001", "stock":"50", "name":"IONIQ"}'
 ```
 - 오토스케일이 어떻게 되고 있는지 모니터링을 걸어둔다:
 ```
