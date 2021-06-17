@@ -602,26 +602,7 @@ kubectl expose deploy store --type="ClusterIP" --port=8080
 
 kubectl get all
 ```
-![image](https://user-images.githubusercontent.com/84000863/122198270-f93edd00-ced3-11eb-8589-42010860180b.png)
-
-- (+) deployment.yaml로 배포
-```
-cd booking
-kubectl apply -f kubernetes/deployment.yml
-
-cd customercenter
-kubectl apply -f kubernetes/deployment.yml
-
-cd product
-kubectl apply -f kubernetes/deployment.yml
-
-cd store
-kubectl apply -f kubernetes/deployment.yml
-
-cd gateway
-kubectl create deploy gateway --image=user08skccacr.azurecr.io/gateway:latest
-```
-![image](https://user-images.githubusercontent.com/84000863/122198598-428f2c80-ced4-11eb-8a98-f93466901302.png)
+![image](https://user-images.githubusercontent.com/84000863/122323130-9136d800-cf61-11eb-9dd6-edb2f60952c4.png)
 
 
 ## 동기식 호출 / 서킷 브레이킹 / 장애격리 (수정 필요)
