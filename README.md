@@ -357,6 +357,8 @@ http POST http://localhost:8084/bookings productId=1 qty=2 startDate=2021-07-03 
 ```
 < Success >
 
+![image](https://user-images.githubusercontent.com/84000863/122341250-395a9a00-cf7e-11eb-90dd-8dcafe288c0b.png)
+
 
 
 ## Gateway 적용
