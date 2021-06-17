@@ -448,7 +448,7 @@ server:
 ```
 http http://localhost:8088/bookings
 ```
-![image](https://user-images.githubusercontent.com/84000863/122338750-14b0f300-cf7b-11eb-8875-7271836ed538.png)
+![image](https://user-images.githubusercontent.com/84000863/122380621-07a7fa00-cfa3-11eb-94a0-4107bae6958a.png)
 
 
 ## 비동기식 호출(Pub/Sub)
