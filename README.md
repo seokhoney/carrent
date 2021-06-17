@@ -678,7 +678,10 @@ watch -n 1 kubectl get pod
 ```
 siege -c10 -t360S -v --content-type "application/json" 'http://20.41.96.68:8080/products POST {"productId": "1001", "stock":"50", "name":"IONIQ"}'
 ```
-- Readiness가 설정되지 않은 yml 파일로 배포 중 서비스 요청 처리 실패
+- Readiness가 설정되지 않은 yml 파일로 배포 중 버전1에서 버전2로 업그레이드 시 서비스 요청 처리 실패
+```
+kubectl set image deploy product user05skccacr.azurecr.io/product:v2
+```
 
 ![image](https://user-images.githubusercontent.com/84000863/122378900-53f23a80-cfa1-11eb-81ab-2c8b60a8a79b.png)
 
@@ -693,14 +696,18 @@ readinessProbe:
   periodSeconds: 5
   failureThreshold: 10
 ```
+- product 서비스의 버전을 버전2에서 버전1로 다운그레이드 함.
+```
+kubectl set image deploy product user05skccacr.azurecr.io/product:v1
+```
+
+- readiness 옵션을 배포 옵션을 설정 한 경우 Availability가 배포기간 동안 변화가 없기 때문에 무정지 재배포가 성공한 것으로 확인됨.
+
+![image](https://user-images.githubusercontent.com/84000863/122379442-d418a000-cfa1-11eb-8b67-fad7b18e64b1.png)
 
 - 기존 버전과 새 버전의 product pod 공존 중
 
 ![image](https://user-images.githubusercontent.com/84000863/122379354-c06d3980-cfa1-11eb-97cc-2e28e1902117.png)
-
- - Availability가 배포기간 동안 변화가 없기 때문에 무정지 재배포가 성공한 것으로 확인됨.
-
-![image](https://user-images.githubusercontent.com/84000863/122379442-d418a000-cfa1-11eb-8b67-fad7b18e64b1.png)
 
 
 ## ConfigMap
