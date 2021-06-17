@@ -702,25 +702,23 @@ kubectl apply -f deployment_with_readiness.yml
 
 ## ConfigMap (수정 필요)
 
-- Store 서비스의 deployment.yml 파일에 아래 항목 추가
+- Booking 서비스의 deployment.yml 파일에 아래 항목 추가
 ```
 env:
    - name: STATUS
      valueFrom:
        configMapKeyRef:
-         name: store-cm
+         name: storecm
          key: status
 ```
 
 - ConfigMap 생성 및 조회
 ```
-kubectl create configmap storecm --from-literal=status=Preparing
+kubectl create configmap storecm --from-literal=status=Booked
 kubectl get configmap storecm -o yaml
 ```
 
-![image](https://user-images.githubusercontent.com/84000863/122202883-6f454300-ced8-11eb-8952-ba5f1c463ce6.png)
-
-- ...
+![image](https://user-images.githubusercontent.com/84000863/122346623-221eab00-cf84-11eb-99b0-ebb2bf8585c4.png)
 
 ## Self-Healing (Liveness Probe)
 
