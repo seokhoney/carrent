@@ -578,7 +578,7 @@ cd store
 az acr build --registry user08skccacr --image user08skccacr.azurecr.io/store:latest . 
 
 ```
-![image](https://user-images.githubusercontent.com/84000863/122197764-7e75c200-ced3-11eb-87cb-3b2263e6b249.png)
+![image](https://user-images.githubusercontent.com/84000863/122322876-22597f00-cf61-11eb-90ff-bb7b26b1c21f.png)
 
 - 컨테이너라이징(Containerizing) : Deployment 생성 확인
 ```
