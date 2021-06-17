@@ -723,21 +723,13 @@ kubectl get configmap storecm -o yaml
 ## Self-Healing (Liveness Probe)
 
 - 상품(product) 서비스의 deployment.yaml에 liveness probe 옵션 추가
-```
-livenessProbe:
-            httpGet:
-              path: '/actuator/health'
-              port: 8090
-            initialDelaySeconds: 120
-            timeoutSeconds: 2
-            periodSeconds: 5
-            failureThreshold: 5
- ```
+
+![image](https://user-images.githubusercontent.com/84000863/122364364-a842ed80-cf94-11eb-8a45-980901aeaf3b.png)
  
 - product에 liveness 적용 확인
 
-![image](https://user-images.githubusercontent.com/84000863/122203276-d4993400-ced8-11eb-98d3-b3044f9eb667.png)
+![image](https://user-images.githubusercontent.com/84000863/122364275-95301d80-cf94-11eb-9312-7bbcab0a00d8.png)
 
 - product 서비스에 liveness가 발동되었고, 포트에 응답이 없기에 Restart가 발생함
 
-![image](https://user-images.githubusercontent.com/84000863/122203358-ebd82180-ced8-11eb-968a-2ecf20354f1d.png)
+![image](https://user-images.githubusercontent.com/84000863/122364323-a11bdf80-cf94-11eb-9e04-5501379e08ec.png)
