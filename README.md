@@ -732,4 +732,4 @@ kubectl get configmap storecm -o yaml
 
 - product 서비스에 liveness가 발동되었고, 포트에 응답이 없기에 Restart가 발생함
 
-![image](https://user-images.githubusercontent.com/84000863/122364323-a11bdf80-cf94-11eb-9e04-5501379e08ec.png)
+![image](https://user-images.githubusercontent.com/84000863/122365346-8d24ad80-cf95-11eb-855a-e8e724d273f6.png)
