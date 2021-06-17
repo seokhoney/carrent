@@ -248,11 +248,11 @@ Viewer를 별도로 구현하여 아래와 같이 view가 출력된다.
 
 - 예약 수행 후의 myPage
 
-![image](https://user-images.githubusercontent.com/84000863/122181119-0784fd00-cec4-11eb-9a49-2881e440e5a1.png)
+![image](https://user-images.githubusercontent.com/84000863/122337825-d2d37d00-cf79-11eb-8d72-c3f426879cb8.png)
 
-- 반납 수행 후의 myPage
+- 반납 수행 후의 myPage (변경된 상태 노출값 확인 가능)
 
-![image](https://user-images.githubusercontent.com/84000863/122181167-153a8280-cec4-11eb-9a11-b81e993cf9f6.png)
+![image](https://user-images.githubusercontent.com/84000863/122337840-d6ff9a80-cf79-11eb-93cf-1338b5014e43.png)
 
 
 ## 동기식 호출
@@ -334,27 +334,33 @@ public boolean modifyStock(HttpServletRequest request, HttpServletResponse respo
 
 - 상품(product) 서비스를 잠시 내려놓음 (ctrl+c)
 
+![image](https://user-images.githubusercontent.com/84000863/122338512-c7cd1c80-cf7a-11eb-83d8-deee04832063.png)
+
 - 예약하기(booking)
 ```
-http POST http://localhost:8084/bookings qty=1 startDate=2021-07-01 endDate=2021-07-03 productId=1 
+http POST http://localhost:8084/bookings productId=1 qty=2 startDate=2021-07-03 endDate=2021-07-05
 ```
 < Fail >
 
-![image](https://user-images.githubusercontent.com/84000863/122181816-a9a4e500-cec4-11eb-980a-db584dc11d61.png)
+![image](https://user-images.githubusercontent.com/84000863/122338536-d0255780-cf7a-11eb-860c-6ddb12b8c879.png)
+
 
 - 상품(product) 서비스 재기동
 ```
 cd product
 mvn spring-boot:run
 ```
+- 업체(store) 서비스를 잠시 내려놓음(ctrl+c)
+
+![image](https://user-images.githubusercontent.com/84000863/122338704-04991380-cf7b-11eb-8dfe-22166ecdca77.png)
 
 - 예약하기(booking)
 ```
-http POST http://localhost:8084/bookings qty=1 startDate=2021-07-01 endDate=2021-07-03 productId=1 
+http POST http://localhost:8084/bookings productId=1 qty=3 startDate=2021-07-01 endDate=2021-07-03 
 ```
 < Success >
 
-![image](https://user-images.githubusercontent.com/84000863/122181996-d1944880-cec4-11eb-9ddb-be0ec470ddc2.png)
+![image](https://user-images.githubusercontent.com/84000863/122338729-0bc02180-cf7b-11eb-96d9-4eb7ce3ebc56.png)
 
 
 
@@ -443,9 +449,9 @@ server:
 - gateway 테스트
 
 ```
-http http://localhost:8088/product
+http http://localhost:8088/bookings
 ```
-![image](https://user-images.githubusercontent.com/84000863/122182444-423b6500-cec5-11eb-932d-77e066f60f94.png)
+![image](https://user-images.githubusercontent.com/84000863/122338750-14b0f300-cf7b-11eb-8875-7271836ed538.png)
 
 
 ## 비동기식 호출 / 시간적 디커플링 / 장애격리 (수정 필요)
