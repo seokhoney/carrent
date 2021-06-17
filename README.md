@@ -351,6 +351,11 @@ cd product
 mvn spring-boot:run
 ```
 
+- 예약하기(booking)
+```
+http POST http://localhost:8084/bookings productId=1 qty=2 startDate=2021-07-03 endDate=2021-07-05
+```
+< Success >
 
 
 
@@ -503,18 +508,8 @@ public class PolicyHandler{
 ...
 
 ```
-booking 서비스는 store 서비스와 완전히 분리되어있으며(sync transaction 없음) 이벤트 수신에 따라 처리되기 때문에, store 서비스가 유지보수로 인해 잠시 내려간 상태라도 예약을 진행해도 문제 없다.(시간적 디커플링) :
+예약(booking) 서비스는 업체(store) 서비스와 완전히 분리되어있으며(sync transaction 없음) 이벤트 수신에 따라 처리되기 때문에, store 서비스가 유지보수로 인해 잠시 내려간 상태라도 예약을 진행해도 문제 없다.(시간적 디커플링) :
   
-```
-# 업체(store) 서비스 를 잠시 내려놓음 (ctrl+c)
-
-# 예약처리
-http POST http://localhost:8084/bookings qty=1 startDate=2021-07-01 endDate=2021-07-03 productId=1
-
-# 예약 상태 확인
-http GET http://localhost:8084/bookings     # 예약상태 안바뀜 확인
-```
-
 - 업체(store) 서비스를 잠시 내려놓음(ctrl+c)
 
 ![image](https://user-images.githubusercontent.com/84000863/122338704-04991380-cf7b-11eb-8dfe-22166ecdca77.png)
@@ -523,6 +518,7 @@ http GET http://localhost:8084/bookings     # 예약상태 안바뀜 확인
 ```
 http POST http://localhost:8084/bookings productId=1 qty=3 startDate=2021-07-01 endDate=2021-07-03 
 ```
+
 < Success >
 
 ![image](https://user-images.githubusercontent.com/84000863/122338729-0bc02180-cf7b-11eb-96d9-4eb7ce3ebc56.png)
