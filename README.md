@@ -676,31 +676,34 @@ watch -n 1 kubectl get pod
 
 - seige 로 배포작업 직전에 워크로드를 모니터링 함.
 ```
-siege -c250 -t60S  -v --content-type "application/json" 'http://52.231.159.123:8080/products POST {"productId":”1”, "name":Tesla”, “stock”=”2”}'
+siege -c10 -t360S -v --content-type "application/json" 'http://20.41.96.68:8080/products POST {"productId": "1001", "stock":"50", "name":"IONIQ"}'
 ```
 - Readiness가 설정되지 않은 yml 파일로 배포 중 서비스 요청 처리 실패
 
-![image](https://user-images.githubusercontent.com/84000863/122200277-d7def080-ced5-11eb-951b-33f18e4c2d58.png)
+![image](https://user-images.githubusercontent.com/84000863/122378900-53f23a80-cfa1-11eb-81ab-2c8b60a8a79b.png)
 
 - deployment.yml에 readiness 옵션을 추가
-
-![image](https://user-images.githubusercontent.com/84000863/122200434-0066ea80-ced6-11eb-82a8-e94ed0182a51.png)
-
-- Readiness가 설정된 yml 파일로 배포 진행
 ```
-kubectl apply -f deployment_with_readiness.yml
+readinessProbe:
+  httpGet:
+    path: '/actuator/health'
+    port: 8080
+  initialDelaySeconds: 10
+  timeoutSeconds: 2
+  periodSeconds: 5
+  failureThreshold: 10
 ```
 
-- 기존 버전과 새 버전의 store pod 공존 중
+- 기존 버전과 새 버전의 product pod 공존 중
 
-![image](https://user-images.githubusercontent.com/84000863/122200647-32784c80-ced6-11eb-81d8-347e75c35f3a.png)
+![image](https://user-images.githubusercontent.com/84000863/122379354-c06d3980-cfa1-11eb-97cc-2e28e1902117.png)
 
  - Availability가 배포기간 동안 변화가 없기 때문에 무정지 재배포가 성공한 것으로 확인됨.
 
-![image](https://user-images.githubusercontent.com/84000863/122200849-62275480-ced6-11eb-9350-f6af2e3296fb.png)
+![image](https://user-images.githubusercontent.com/84000863/122379442-d418a000-cfa1-11eb-8b67-fad7b18e64b1.png)
 
 
-## ConfigMap (수정 필요)
+## ConfigMap
 
 - Booking 서비스의 deployment.yml 파일에 아래 항목 추가
 ```
