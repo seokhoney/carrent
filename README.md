@@ -255,7 +255,7 @@ Viewer를 별도로 구현하여 아래와 같이 view가 출력된다.
 ![image](https://user-images.githubusercontent.com/84000863/122337840-d6ff9a80-cf79-11eb-93cf-1338b5014e43.png)
 
 
-## 동기식 호출
+## 동기식 호출(Req/Resp)
 
 분석단계에서의 조건 중 하나로 예약(booking)->업체(pay) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다. 
 
@@ -451,7 +451,7 @@ http http://localhost:8088/bookings
 ![image](https://user-images.githubusercontent.com/84000863/122338750-14b0f300-cf7b-11eb-8875-7271836ed538.png)
 
 
-## 비동기식 호출 / 시간적 디커플링 / 장애격리
+## 비동기식 호출(Pub/Sub)
 
 예약(booking)이 이루어진 후에 업체(store)에서 차를 배차하는 행위는 동기식이 아니라 비 동기식으로 처리하여 업체(store)의 배차처리를 위하여 예약이 블로킹 되지 않도록 처리한다.
 
@@ -598,7 +598,7 @@ kubectl get all
 ![image](https://user-images.githubusercontent.com/84000863/122323130-9136d800-cf61-11eb-9dd6-edb2f60952c4.png)
 
 
-## 동기식 호출 / 서킷 브레이킹 / 장애격리 (수정 필요)
+## 서킷 브레이킹(Circuit Breaking)
 
 * 서킷 브레이킹 : istio방식으로 Circuit breaking 구현함
 
