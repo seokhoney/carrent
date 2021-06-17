@@ -449,7 +449,7 @@ http http://localhost:8088/bookings
 ![image](https://user-images.githubusercontent.com/84000863/122338750-14b0f300-cf7b-11eb-8875-7271836ed538.png)
 
 
-## 비동기식 호출 / 시간적 디커플링 / 장애격리 (수정 필요)
+## 비동기식 호출 / 시간적 디커플링 / 장애격리
 
 예약(booking)이 이루어진 후에 업체(store)에서 차를 배차하는 행위는 동기식이 아니라 비 동기식으로 처리하여 업체(store)의 배차처리를 위하여 예약이 블로킹 되지 않도록 처리한다.
 
