@@ -580,7 +580,7 @@ az acr build --registry user08skccacr --image user08skccacr.azurecr.io/store:lat
 ```
 ![image](https://user-images.githubusercontent.com/84000863/122322876-22597f00-cf61-11eb-90ff-bb7b26b1c21f.png)
 
-- 컨테이너라이징(Containerizing) : Deployment 생성 확인
+- 컨테이너라이징(Containerizing) : Deployment 생성
 ```
 kubectl create deploy booking --image=user08skccacr.azurecr.io/booking:v1
 kubectl create deploy customercenter --image=user08skccacr.azurecr.io/customercenter:v1
@@ -590,7 +590,6 @@ kubectl create deploy store --image=user08skccacr.azurecr.io/store:v1
 
 kubectl get all
 ```
-![image](https://user-images.githubusercontent.com/84000863/122198125-d6142d80-ced3-11eb-8d04-be7fd397a1db.png)
 
 - 컨테이너라이징(Containerizing) : Service 생성 확인
 ```
