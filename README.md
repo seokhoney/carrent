@@ -634,8 +634,6 @@ $ siege -c100 -t30S -v --content-type "application/json" 'http://52.231.76.211:8
 앞서 설정한 부하가 발생하여 Circuit Breaker가 발동, 초반에는 요청 실패처리되었으며
 밀린 부하가 product에서 처리되면서 다시 요청을 받기 시작함
 
-![image](https://user-images.githubusercontent.com/84000863/122333259-d8799480-cf72-11eb-9887-f9da16a85200.png)
-
 - Availability 가 높아진 것을 확인 (siege)
 
 ![image](https://user-images.githubusercontent.com/84000863/122333292-e4655680-cf72-11eb-8446-6a548d83c1ce.png)
