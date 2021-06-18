@@ -256,7 +256,7 @@ Viewer를 별도로 구현하여 아래와 같이 view가 출력된다.
 
 - 반납 수행 후의 myPage (변경된 상태 노출값 확인 가능)
 
-![image](https://user-images.githubusercontent.com/84000863/122337840-d6ff9a80-cf79-11eb-93cf-1338b5014e43.png)
+![image](https://user-images.githubusercontent.com/84000863/122505312-0e804c80-d037-11eb-8e28-258dbddcb45e.png)
 
 
 ## 동기식 호출(Req/Resp)
