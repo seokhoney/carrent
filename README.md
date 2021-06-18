@@ -246,6 +246,10 @@ product 서비스와 booking 서비스는 h2 DB로 구현하고, 그와 달리 s
 
 Viewer를 별도로 구현하여 아래와 같이 view가 출력된다.
 
+- myPage 구현
+
+![image](https://user-images.githubusercontent.com/84000863/122505157-bc3f2b80-d036-11eb-863c-01c0de3e68fe.png)
+
 - 예약 수행 후의 myPage
 
 ![image](https://user-images.githubusercontent.com/84000863/122337825-d2d37d00-cf79-11eb-8d72-c3f426879cb8.png)
