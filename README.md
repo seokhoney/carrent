@@ -39,7 +39,7 @@
 7. Circuit Breaker
 8. Autoscale (HPA)
 9. Zero-downtime deploy
-10. Config Map / Persistence Volume
+10. f Map / Persistence Volume
 11. Polyglot
 12. Self-healing (Liveness Probe)
 
@@ -695,10 +695,6 @@ kubectl set image deploy product user05skccacr.azurecr.io/product:v2
    periodSeconds: 5
    failureThreshold: 5          
 ```
-- product 서비스의 버전을 버전2에서 버전1로 다운그레이드 함.
-```
-kubectl set image deploy product user05skccacr.azurecr.io/product:v1
-```
 
 - readiness 옵션을 배포 옵션을 설정 한 경우 Availability가 배포기간 동안 변화가 없기 때문에 무정지 재배포가 성공한 것으로 확인됨.
 
@@ -721,13 +717,23 @@ env:
          key: status
 ```
 
+- Booking 서비스에 configMap 설정 데이터 가져오도록 아래 항목 추가
+
+![image](https://user-images.githubusercontent.com/84000863/122492593-04ebea00-d021-11eb-8000-9e6b55d75ffb.png)
+
 - ConfigMap 생성 및 조회
 ```
 kubectl create configmap storecm --from-literal=status=Booked
 kubectl get configmap storecm -o yaml
 ```
 
-![image](https://user-images.githubusercontent.com/84000863/122346623-221eab00-cf84-11eb-99b0-ebb2bf8585c4.png)
+![image](https://user-images.githubusercontent.com/84000863/122492282-72e3e180-d020-11eb-8a12-fc9931c45249.png)
+
+- ConfigMap 설정 데이터 조회
+
+![image](https://user-images.githubusercontent.com/84000863/122492475-c5bd9900-d020-11eb-9131-16619f8324ab.png)
+
+
 
 ## Self-Healing (Liveness Probe)
 
