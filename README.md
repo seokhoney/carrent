@@ -630,7 +630,7 @@ $ siege -c100 -t30S -v --content-type "application/json" 'http://52.231.76.211:8
 
 - Availability 가 높아진 것을 확인 (siege)
 
-![image](https://user-images.githubusercontent.com/84000863/122333292-e4655680-cf72-11eb-8446-6a548d83c1ce.png)
+![image](https://user-images.githubusercontent.com/84000863/122497960-454f6600-d029-11eb-9a72-09992ab1baba.png)
 
 - 모니터링 시스템(Kiali) : EXTERNAL-IP:20001 에서 Circuit Breaker 뱃지 발생 확인함.
 
