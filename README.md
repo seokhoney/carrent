@@ -687,14 +687,13 @@ kubectl set image deploy product user05skccacr.azurecr.io/product:v2
 
 - deployment.yml에 readiness 옵션을 추가
 ```
-readinessProbe:
-  httpGet:
-    path: '/actuator/health'
-    port: 8080
-  initialDelaySeconds: 10
-  timeoutSeconds: 2
-  periodSeconds: 5
-  failureThreshold: 10
+ readinessProbe:
+   tcpSocket:
+     port: 8080
+   initialDelaySeconds: 10
+   timeoutSeconds: 2
+   periodSeconds: 5
+   failureThreshold: 5          
 ```
 - product 서비스의 버전을 버전2에서 버전1로 다운그레이드 함.
 ```
