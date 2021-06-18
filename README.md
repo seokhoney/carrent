@@ -643,7 +643,7 @@ $ siege -c100 -t30S -v --content-type "application/json" 'http://52.231.76.211:8
 
 - 상품(product) 서비스에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 15프로를 넘어서면 replica 를 10개까지 늘려준다:
 ```
-kubectl autoscale deploy product --min=1 --max=10 --cpu-percent=5
+kubectl autoscale deploy product --min=1 --max=10 --cpu-percent=1
 
 kubectl get hpa
 ```
