@@ -561,44 +561,62 @@ mvn package
 - 도커라이징(Dockerizing) : Azure Container Registry(ACR)에 Docker Image Push하기
 ```
 cd booking
-az acr build --registry user08skccacr --image user08skccacr.azurecr.io/booking:latest .
+az acr build --registry user05skccacr --image user05skccacr.azurecr.io/booking:latest .
 
 cd customercenter
-az acr build --registry user08skccacr --image user08skccacr.azurecr.io/customercenter:latest .
+az acr build --registry user05skccacr --image user05skccacr.azurecr.io/customercenter:latest .
 
 cd gateway
-az acr build --registry user08skccacr --image user08skccacr.azurecr.io/gateway:latest .
+az acr build --registry user05skccacr --image user05skccacr.azurecr.io/gateway:latest .
 
 cd product
-az acr build --registry user08skccacr --image user08skccacr.azurecr.io/product:latest .
+az acr build --registry user05skccacr --image user05skccacr.azurecr.io/product:latest .
 
 cd store
-az acr build --registry user08skccacr --image user08skccacr.azurecr.io/store:latest . 
-
+az acr build --registry user05skccacr --image user05skccacr.azurecr.io/store:latest . 
 ```
 ![image](https://user-images.githubusercontent.com/84000863/122322876-22597f00-cf61-11eb-90ff-bb7b26b1c21f.png)
 
 - 컨테이너라이징(Containerizing) : Deployment 생성
 ```
-kubectl create deploy booking --image=user08skccacr.azurecr.io/booking:v1
-kubectl create deploy customercenter --image=user08skccacr.azurecr.io/customercenter:v1
-kubectl create deploy gateway --image=user08skccacr.azurecr.io/gateway:v1
-kubectl create deploy product --image=user08skccacr.azurecr.io/product:v1
-kubectl create deploy store --image=user08skccacr.azurecr.io/store:v1
+cd product
+kubectl apply -f kubernetes/deployment.yml
+
+cd booking
+kubectl apply -f kubernetes/deployment.yml
+
+cd store
+kubectl apply -f kubernetes/deployment.yml
+
+cd customercenter
+kubectl apply -f kubernetes/deployment.yml
+
+cd gateway
+kubectl create deploy gateway --image=user05skccacr.azurecr.io/gateway:latest
 
 kubectl get all
 ```
 
 - 컨테이너라이징(Containerizing) : Service 생성 확인
 ```
-kubectl expose deploy booking --type="ClusterIP" --port=8080
-kubectl expose deploy customercenter --type="ClusterIP" --port=8080
-kubectl expose deploy gateway --type="LoadBalancer" --port=8080
-kubectl expose deploy product --type="ClusterIP" --port=8080
-kubectl expose deploy store --type="ClusterIP" --port=8080
+cd product
+kubectl apply -f kubernetes/service.yaml
+
+cd booking
+kubectl apply -f kubernetes/service.yaml
+
+cd store
+kubectl apply -f kubernetes/service.yaml
+
+cd customercenter
+kubectl apply -f kubernetes/service.yaml
+
+cd gateway
+kubectl expose deploy gateway --type=LoadBalancer --port=8080
 
 kubectl get all
 ```
+
 ![image](https://user-images.githubusercontent.com/84000863/122323130-9136d800-cf61-11eb-9dd6-edb2f60952c4.png)
 
 
