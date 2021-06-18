@@ -749,7 +749,7 @@ kubectl create configmap storecm --from-literal=status=Booked
 kubectl get configmap storecm -o yaml
 ```
 
-![image](https://user-images.githubusercontent.com/84000863/122492282-72e3e180-d020-11eb-8a12-fc9931c45249.png)
+![image](https://user-images.githubusercontent.com/84000863/122506477-6455f400-d039-11eb-93b2-2145d21f8e36.png)
 
 - ConfigMap 설정 데이터 조회
 
