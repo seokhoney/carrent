@@ -647,7 +647,7 @@ kubectl autoscale deploy product --min=1 --max=10 --cpu-percent=1
 
 kubectl get hpa
 ```
-![image](https://user-images.githubusercontent.com/84000863/122333848-b5031980-cf73-11eb-95de-dae2816c3cf7.png)
+![image](https://user-images.githubusercontent.com/84000863/122494497-71b4b380-d024-11eb-948d-97ef4a8628ae.png)
 
 - CB 에서 했던 방식대로 워크로드를 30초 동안 걸어준다.
 ```
